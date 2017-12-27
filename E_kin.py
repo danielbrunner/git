@@ -88,18 +88,20 @@ for kk in xrange(1,11):
 
 
     for ii in range(0,24):
-        a_m[kk-1,ii]=np.mean(at_5[:,ii])*r[ii]
-        disp_m[kk-1,ii]=np.mean(disp[:,ii])*r[ii]
+        a_m[kk-1,ii]=np.mean(at_5[:,ii])
+        disp_m[kk-1,ii]=np.mean(disp[:,ii])
 
 
-aa=np.zeros((24))
-dd=np.zeros((24))
+a=np.zeros((24))        # mean acceleration of radial and over all seismogram
+d=np.zeros((24))        # mean displacement of radial and over all seismogram
 for ii in range(0,24):
-    aa[ii]=np.mean(a_m[:,ii])
-    dd[ii] = np.mean(disp_m[:, ii])
+    a[ii]=np.mean(a_m[:,ii])
+    d[ii] = np.mean(disp_m[:, ii])
 
-plt.plot(dd,'o')
+plt.plot(d,'o')
 plt.show()
 
 # bei 100 Hz ist steigung maxial
 # displacement und acc mit geosread normalisiert
+
+#geometrical spreading wird glaub erst gemacht wenn energy berechnet ist...... berechne energy und dann geo spreading
