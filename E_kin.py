@@ -6,11 +6,65 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from scipy import integrate
 
-# parameters
 
-c_l=2350              # Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
-c_r=2162              # Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
+
+# functions #
+
+
+def integraion(x,y,rho):
+    inte=0
+    x_d=np.diff(x)
+    for ii in range(0,len(x_d)):
+        inte=inte+x_d[ii]*y[ii]**2*rho[ii]
+    return inte
+
+
+
+def int_EM(disp_s):
+
+    # disp_s: displacement at the surface
+
+    # this function integrate the value over the depth
+
+    #### read depth values and calculate the depth vector
+
+    temp=pd.read_csv("./SLDER.TXT", skiprows=range(0, 4), nrows=121, delim_whitespace=True)
+    d=np.array(temp)
+    dist=np.cumsum(d[:,1])*1000     # da wir nur distance haen macht diese fkt. eine plot array [m] (darum mal 1000)
+    rho=d[:,4]*1000                 # kg/m^3
+    print(rho)
+
+
+    # read eigenmodes values
+    temp=pd.read_csv("./SLDER.TXT", skiprows=range(0, 132), delim_whitespace=True)
+    prov=np.array(temp)
+    UT=prov[:,1]
+
+    inte=np.zeros((len(disp_s)))
+    for ii in range(0,len(disp_s)):
+        temp=UT*disp_s[ii]
+        inte[ii] = integraion(dist, temp, rho)
+
+    return inte
+
+
+
+    # temp=pd.read_csv("./SRDER.TXT", skiprows=range(0, 132), delim_whitespace=True)
+    # prov=np.array(temp)
+    # UR=prov[:,1]
+    # UZ=prov[:,3]
+
+
+
+
+
+
+
+c_l=2350              #  [m/s]Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
+c_r=2162              # [m/s] Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
 
 
 d=20.0                # d: distance between microarray-receivers
@@ -19,7 +73,7 @@ d=20.0                # d: distance between microarray-receivers
 d_r=400
 r=np.sqrt(np.arange(0,24)*d_r)      # geometrical spreading
 r[0]=1
-print(r)
+
 #output von sofi3D sind glaub m/s --->>> achtung mit phase velocity von oben!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -98,10 +152,15 @@ for ii in range(0,24):
     a[ii]=np.mean(a_m[:,ii])
     d[ii] = np.mean(disp_m[:, ii])
 
-plt.plot(d,'o')
+
+inte=int_EM(d)  # parameters
+E_l=inte*om[50]**2      # calculate the velocity from the displacement
+
+
+plt.plot(E_l,'o')
 plt.show()
 
-# bei 100 Hz ist steigung maxial
+
 # displacement und acc mit geosread normalisiert
 
 #geometrical spreading wird glaub erst gemacht wenn energy berechnet ist...... berechne energy und dann geo spreading
