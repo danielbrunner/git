@@ -103,7 +103,7 @@ disp_m_r=np.zeros((10,24))
 
 
 #vz=np.empty([14,24*4,1000])
-for kk in xrange(4,5):
+for kk in xrange(1,11):
 
     stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_exp'+'/Model_2_'+str(kk)+'_exp'+'_vx.bin'
     vx=np.fromfile(stri, dtype='<f4')
