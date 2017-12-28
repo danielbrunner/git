@@ -7,7 +7,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from scipy import integrate
+
 
 
 
@@ -23,48 +23,60 @@ def integraion(x,y,rho):
 
 
 
-def int_EM(disp_s):
+def int_EM(disp_s_l,disp_s_z):
 
     # disp_s: displacement at the surface
 
     # this function integrate the value over the depth
 
+    # allocate
+
+    inte_l=np.zeros((len(disp_s_l)))
+    inte_z = np.zeros((len(disp_s_z)))
+    inte_r = np.zeros((len(disp_s_z)))
+
     #### read depth values and calculate the depth vector
 
-    temp=pd.read_csv("./SLDER.TXT", skiprows=range(0, 4), nrows=121, delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_1_Hz.TXT", skiprows=range(0, 4), nrows=183, delim_whitespace=True)
     d=np.array(temp)
     dist=np.cumsum(d[:,1])*1000     # da wir nur distance haen macht diese fkt. eine plot array [m] (darum mal 1000)
     rho=d[:,4]*1000                 # kg/m^3
-    print(rho)
 
-
-    # read eigenmodes values
-    temp=pd.read_csv("./SLDER.TXT", skiprows=range(0, 132), delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_1_Hz.TXT", skiprows=range(0, 194), delim_whitespace=True)
     prov=np.array(temp)
     UT=prov[:,1]
 
-    inte=np.zeros((len(disp_s)))
-    for ii in range(0,len(disp_s)):
-        temp=UT*disp_s[ii]
-        inte[ii] = integraion(dist, temp, rho)
-
-    return inte
+    temp=pd.read_csv("./SRDER_1_Hz.TXT", skiprows=range(0, 194), delim_whitespace=True)
+    prov=np.array(temp)
+    UR=prov[:,1]
+    UZ=prov[:,3]
 
 
+    for ii in range(0,len(disp_s_l)):
+        temp=UT*disp_s_l[ii]
+        inte_l[ii] = integraion(dist, temp, rho)
+        temp=UZ*disp_s_z[ii]
+        inte_z[ii] = integraion(dist, temp, rho)
+        temp=UR*disp_s_z[ii]
+        inte_r[ii] = integraion(dist, temp, rho)
 
-    # temp=pd.read_csv("./SRDER.TXT", skiprows=range(0, 132), delim_whitespace=True)
-    # prov=np.array(temp)
-    # UR=prov[:,1]
-    # UZ=prov[:,3]
-
-
-
-
+    return inte_l,inte_z,inte_r
 
 
 
-c_l=2350              #  [m/s]Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
-c_r=2162              # [m/s] Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
+
+
+
+
+
+c_l_1=2579              #  [m/s]Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
+c_r_1=2349              # [m/s] Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
+c_l_2=2525              #  [m/s]Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
+c_r_2=2321              # [m/s] Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
+c_l_5=2350              #  [m/s]Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
+c_r_5=2162              # [m/s] Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
+c_l_10=2233             #  [m/s]Love phase velocity at 10 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
+c_r_10=2017             # [m/s] Rayleigh phase velocity at 10 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
 
 
 d=20.0                # d: distance between microarray-receivers
@@ -85,23 +97,23 @@ rot_z = np.zeros((14, 24,1000))
 
 # nean acceleration and displacement
 a_m=np.zeros((10,24))
-disp_m=np.zeros((10,24))
-
+disp_m_l=np.zeros((10,24))
+disp_m_r=np.zeros((10,24))
 
 
 
 #vz=np.empty([14,24*4,1000])
-for kk in xrange(1,11):
+for kk in xrange(4,5):
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'/Model_2_'+str(kk)+'_vx.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_exp'+'/Model_2_'+str(kk)+'_exp'+'_vx.bin'
     vx=np.fromfile(stri, dtype='<f4')
     vx=np.reshape(vx, (14,24*4, 1000))
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'/Model_2_'+str(kk)+'_vy.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_exp'+'/Model_2_'+str(kk)+'_exp'+'_vy.bin'
     vy=np.fromfile(stri, dtype='<f4')
     vy=np.reshape(vy, (14,24*4, 1000))
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'/Model_2_'+str(kk)+'_vz.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_exp'+'/Model_2_'+str(kk)+'_exp'+'_vz.bin'
     vz=np.fromfile(stri, dtype='<f4')
     vz=np.reshape(vz, (14,24*4, 1000))
 
@@ -134,33 +146,55 @@ for kk in xrange(1,11):
     ROT_Z=abs(np.fft.fft(rot_z, axis=2)[:,:,0:n/2])
 
 
+
+
+
+# calculata the transversal (Love wave) kinetic energy
 # calculate acceleration from rotation rate a=2*C*rot where C is phase velocity
 
-    at_5=2*c_l*ROT_Y[:,:,50]
-    disp=at_5/(om[50]**2)
+    at_5=2*c_l_1*ROT_Y[:,:,10]
+    disp=at_5/(om[10]**2)
 
 
+
+
+
+    # calculate the Rayleigh wave energy
+    # fft of the velocity
+
+    VY = abs(np.fft.fft(vy, axis=2)[:, :, 0:n / 2])
+    disp_y = VY[:,:,10]/om[10]
 
     for ii in range(0,24):
         a_m[kk-1,ii]=np.mean(at_5[:,ii])
-        disp_m[kk-1,ii]=np.mean(disp[:,ii])
+        disp_m_l[kk-1,ii]=np.mean(disp[:,ii])
+        disp_m_r[kk-1,ii]=np.mean(disp_y[:,ii])
+
+
 
 
 a=np.zeros((24))        # mean acceleration of radial and over all seismogram
-d=np.zeros((24))        # mean displacement of radial and over all seismogram
+d_l=np.zeros((24))        # mean displacement of radial and over all seismogram
+d_r=np.zeros((24))        # mean displacement of radial and over all seismogram
 for ii in range(0,24):
     a[ii]=np.mean(a_m[:,ii])
-    d[ii] = np.mean(disp_m[:, ii])
+    d_l[ii] = np.mean(disp_m_l[:, ii])
+    d_r[ii] = np.mean(disp_m_r[:, ii])
 
 
-inte=int_EM(d)  # parameters
-E_l=inte*om[50]**2      # calculate the velocity from the displacement
+inte_l,inte_z,inte_r=int_EM(d_l,d_r)  # parameters
+E_l=inte_l*om[10]**2      # calculate the velocity from the displacement
+E_z=inte_z*om[10]**2      # calculate the velocity from the displacement
+E_r=inte_r*om[10]**2      # calculate the velocity from the displacement
+E_ray=E_r+E_z
 
-
-plt.plot(E_l,'o')
+plt.plot(E_l/E_ray,'o')
 plt.show()
 
+# 1. Problem: ab wann nehmen wir seismogram -> first peak weg lassen???
+# wir nehmen mal ganze energy -> kann aber spater geandert werden
 
-# displacement und acc mit geosread normalisiert
+# frequenz wechlsen
+# schaue bei welcher frequenz es am meisten scattering gibt und dann berechne dort E_l/E_r
 
-#geometrical spreading wird glaub erst gemacht wenn energy berechnet ist...... berechne energy und dann geo spreading
+# achtung: du musst eleptisity nochmals nachprufen!!!!!
