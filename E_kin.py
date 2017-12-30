@@ -7,6 +7,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from _utils import *
 
 
 
@@ -37,16 +38,16 @@ def int_EM(disp_s_l,disp_s_z):
 
     #### read depth values and calculate the depth vector
 
-    temp=pd.read_csv("./SLDER_1_Hz.TXT", skiprows=range(0, 4), nrows=183, delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_11_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
     d=np.array(temp)
     dist=np.cumsum(d[:,1])*1000     # da wir nur distance haen macht diese fkt. eine plot array [m] (darum mal 1000)
     rho=d[:,4]*1000                 # kg/m^3
 
-    temp=pd.read_csv("./SLDER_1_Hz.TXT", skiprows=range(0, 194), delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_11_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UT=prov[:,1]
 
-    temp=pd.read_csv("./SRDER_1_Hz.TXT", skiprows=range(0, 194), delim_whitespace=True)
+    temp=pd.read_csv("./SRDER_11_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UR=prov[:,1]
     UZ=prov[:,3]
@@ -57,7 +58,7 @@ def int_EM(disp_s_l,disp_s_z):
         inte_l[ii] = integraion(dist, temp, rho)
         temp=UZ*disp_s_z[ii]
         inte_z[ii] = integraion(dist, temp, rho)
-        temp=UR*disp_s_z[ii]
+        temp=UR*disp_s_z[ii]*el_11
         inte_r[ii] = integraion(dist, temp, rho)
 
     return inte_l,inte_z,inte_r
@@ -69,15 +70,10 @@ def int_EM(disp_s_l,disp_s_z):
 
 
 
-c_l_1=2579              #  [m/s]Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
-c_r_1=2349              # [m/s] Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
-c_l_2=2525              #  [m/s]Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
-c_r_2=2321              # [m/s] Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
-c_l_5=2350              #  [m/s]Love phase velocity at 5 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
-c_r_5=2162              # [m/s] Rayleigh phase velocity at 5 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
-c_l_10=2233             #  [m/s]Love phase velocity at 10 Hz; is writen on file SLDER.TXT (atention!!!! vaules are given in km/s)
-c_r_10=2017             # [m/s] Rayleigh phase velocity at 10 Hz; is written on the SRDER.TXT (atention!!!! vaules are given in km/s)
 
+
+ff=11           # frequency ##############
+ff=ff*10
 
 d=20.0                # d: distance between microarray-receivers
 
@@ -105,15 +101,15 @@ disp_m_r=np.zeros((10,24))
 #vz=np.empty([14,24*4,1000])
 for kk in xrange(1,11):
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_exp'+'/Model_2_'+str(kk)+'_exp'+'_vx.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vx.bin'
     vx=np.fromfile(stri, dtype='<f4')
     vx=np.reshape(vx, (14,24*4, 1000))
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_exp'+'/Model_2_'+str(kk)+'_exp'+'_vy.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vy.bin'
     vy=np.fromfile(stri, dtype='<f4')
     vy=np.reshape(vy, (14,24*4, 1000))
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_exp'+'/Model_2_'+str(kk)+'_exp'+'_vz.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vz.bin'
     vz=np.fromfile(stri, dtype='<f4')
     vz=np.reshape(vz, (14,24*4, 1000))
 
@@ -152,8 +148,8 @@ for kk in xrange(1,11):
 # calculata the transversal (Love wave) kinetic energy
 # calculate acceleration from rotation rate a=2*C*rot where C is phase velocity
 
-    at_5=2*c_l_1*ROT_Y[:,:,10]
-    disp=at_5/(om[10]**2)
+    at_5=2*c_l_11*ROT_Y[:,:,ff]
+    disp=at_5/(om[ff]**2)
 
 
 
@@ -163,7 +159,7 @@ for kk in xrange(1,11):
     # fft of the velocity
 
     VY = abs(np.fft.fft(vy, axis=2)[:, :, 0:n / 2])
-    disp_y = VY[:,:,10]/om[10]
+    disp_y = VY[:,:,20]/om[20]
 
     for ii in range(0,24):
         a_m[kk-1,ii]=np.mean(at_5[:,ii])
@@ -183,9 +179,9 @@ for ii in range(0,24):
 
 
 inte_l,inte_z,inte_r=int_EM(d_l,d_r)  # parameters
-E_l=inte_l*om[10]**2      # calculate the velocity from the displacement
-E_z=inte_z*om[10]**2      # calculate the velocity from the displacement
-E_r=inte_r*om[10]**2      # calculate the velocity from the displacement
+E_l=inte_l*om[ff]**2      # calculate the velocity from the displacement
+E_z=inte_z*om[ff]**2      # calculate the velocity from the displacement
+E_r=inte_r*om[ff]**2      # calculate the velocity from the displacement
 E_ray=E_r+E_z
 
 plt.plot(E_l/E_ray,'o')
