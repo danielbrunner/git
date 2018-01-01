@@ -38,16 +38,16 @@ def int_EM(disp_s_l,disp_s_z):
 
     #### read depth values and calculate the depth vector
 
-    temp=pd.read_csv("./SLDER_11_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_8_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
     d=np.array(temp)
     dist=np.cumsum(d[:,1])*1000     # da wir nur distance haen macht diese fkt. eine plot array [m] (darum mal 1000)
     rho=d[:,4]*1000                 # kg/m^3
 
-    temp=pd.read_csv("./SLDER_11_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_19_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UT=prov[:,1]
 
-    temp=pd.read_csv("./SRDER_11_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    temp=pd.read_csv("./SRDER_19_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UR=prov[:,1]
     UZ=prov[:,3]
@@ -58,7 +58,7 @@ def int_EM(disp_s_l,disp_s_z):
         inte_l[ii] = integraion(dist, temp, rho)
         temp=UZ*disp_s_z[ii]
         inte_z[ii] = integraion(dist, temp, rho)
-        temp=UR*disp_s_z[ii]*el_11
+        temp=UR*disp_s_z[ii]*el_12
         inte_r[ii] = integraion(dist, temp, rho)
 
     return inte_l,inte_z,inte_r
@@ -72,15 +72,15 @@ def int_EM(disp_s_l,disp_s_z):
 
 
 
-ff=11           # frequency ##############
+ff=19           # frequency ##############
 ff=ff*10
 
 d=20.0                # d: distance between microarray-receivers
 
-# gepmetrical spreading
-d_r=400
-r=np.sqrt(np.arange(0,24)*d_r)      # geometrical spreading
-r[0]=1
+# # gepmetrical spreading
+# d_r=400
+# r=np.sqrt(np.arange(0,24)*d_r)      # geometrical spreading
+# r[0]=1
 
 #output von sofi3D sind glaub m/s --->>> achtung mit phase velocity von oben!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -124,9 +124,9 @@ for kk in xrange(1,11):
     for ii in range(0, 14):
         ll = 0
         for jj in range(0, 24):
-            rot_x[ii,jj,:]=1/2.0*((vz[ii,ll+2,:]-vz[ii,ll,:])/d-(vy[ii,ll+3,:]-vy[ii,ll,:])/d)
+            #rot_x[ii,jj,:]=1/2.0*((vz[ii,ll+2,:]-vz[ii,ll,:])/d-(vy[ii,ll+3,:]-vy[ii,ll,:])/d)
             rot_y[ii,jj,:]=1/2.0*((vx[ii,ll+3,:]-vx[ii,ll,:])/d-(vz[ii,ll+1,:]-vz[ii,ll,:])/d)
-            rot_z[ii,jj,:]=1/2.0*((vy[ii,ll+1,:]-vy[ii,ll,:])/d-(vx[ii,ll+2,:]-vx[ii,ll,:])/d)
+            #rot_z[ii,jj,:]=1/2.0*((vy[ii,ll+1,:]-vy[ii,ll,:])/d-(vx[ii,ll+2,:]-vx[ii,ll,:])/d)
             ll=ll+4
 
 
@@ -137,9 +137,9 @@ for kk in xrange(1,11):
     dt = 1.000000e-02
     freq = np.fft.fftfreq(n, d=dt)[0:n/2]
     om=2*np.pi*freq                 # omega
-    ROT_X=abs(np.fft.fft(rot_x, axis=2)[:,:,0:n/2])
+    #ROT_X=abs(np.fft.fft(rot_x, axis=2)[:,:,0:n/2])
     ROT_Y=abs(np.fft.fft(rot_y, axis=2)[:,:,0:n/2])
-    ROT_Z=abs(np.fft.fft(rot_z, axis=2)[:,:,0:n/2])
+    #ROT_Z=abs(np.fft.fft(rot_z, axis=2)[:,:,0:n/2])
 
 
 
@@ -148,8 +148,15 @@ for kk in xrange(1,11):
 # calculata the transversal (Love wave) kinetic energy
 # calculate acceleration from rotation rate a=2*C*rot where C is phase velocity
 
-    at_5=2*c_l_11*ROT_Y[:,:,ff]
-    disp=at_5/(om[ff]**2)
+    # print some important values
+    prov=c_l_19
+    print(prov/float(ff/10)/200.0)
+    print(prov/float(ff/10))
+    ############
+
+    at=2*prov*ROT_Y[:,:,ff]
+    disp=at/(om[ff]**2)
+
 
 
 
@@ -162,7 +169,7 @@ for kk in xrange(1,11):
     disp_y = VY[:,:,20]/om[20]
 
     for ii in range(0,24):
-        a_m[kk-1,ii]=np.mean(at_5[:,ii])
+        a_m[kk-1,ii]=np.mean(at[:,ii])
         disp_m_l[kk-1,ii]=np.mean(disp[:,ii])
         disp_m_r[kk-1,ii]=np.mean(disp_y[:,ii])
 
@@ -184,13 +191,8 @@ E_z=inte_z*om[ff]**2      # calculate the velocity from the displacement
 E_r=inte_r*om[ff]**2      # calculate the velocity from the displacement
 E_ray=E_r+E_z
 
-plt.plot(E_l/E_ray,'o')
+plt.plot(E_l/E_ray)
 plt.show()
 
 # 1. Problem: ab wann nehmen wir seismogram -> first peak weg lassen???
 # wir nehmen mal ganze energy -> kann aber spater geandert werden
-
-# frequenz wechlsen
-# schaue bei welcher frequenz es am meisten scattering gibt und dann berechne dort E_l/E_r
-
-# achtung: du musst eleptisity nochmals nachprufen!!!!!
