@@ -38,18 +38,19 @@ def int_EM(disp_s_l,disp_s_z):
 
     #### read depth values and calculate the depth vector
 
-    temp=pd.read_csv("./SLDER_8_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_2_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
     d=np.array(temp)
     dist=np.cumsum(d[:,1])*1000     # da wir nur distance haen macht diese fkt. eine plot array [m] (darum mal 1000)
     rho=d[:,4]*1000                 # kg/m^3
 
-    temp=pd.read_csv("./SLDER_19_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_9_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UT=prov[:,1]
 
-    temp=pd.read_csv("./SRDER_19_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    temp=pd.read_csv("./SRDER_9_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UR=prov[:,1]
+    print(UR[110])
     UZ=prov[:,3]
 
 
@@ -58,7 +59,7 @@ def int_EM(disp_s_l,disp_s_z):
         inte_l[ii] = integraion(dist, temp, rho)
         temp=UZ*disp_s_z[ii]
         inte_z[ii] = integraion(dist, temp, rho)
-        temp=UR*disp_s_z[ii]*el_12
+        temp=UR*disp_s_z[ii]*el_6       ###############
         inte_r[ii] = integraion(dist, temp, rho)
 
     return inte_l,inte_z,inte_r
@@ -72,10 +73,13 @@ def int_EM(disp_s_l,disp_s_z):
 
 
 
-ff=19           # frequency ##############
+ff=9                       # frequency ##############
+c=c_l_9                    # phase velo #####################
 ff=ff*10
 
-d=20.0                # d: distance between microarray-receivers
+d=20.0                    # d: distance between microarray-receivers
+
+
 
 # # gepmetrical spreading
 # d_r=400
@@ -149,12 +153,11 @@ for kk in xrange(1,11):
 # calculate acceleration from rotation rate a=2*C*rot where C is phase velocity
 
     # print some important values
-    prov=c_l_19
-    print(prov/float(ff/10)/200.0)
-    print(prov/float(ff/10))
+    print(c/float(ff/10)/200.0)
+    print(c/float(ff/10))
     ############
 
-    at=2*prov*ROT_Y[:,:,ff]
+    at=2*c*ROT_Y[:,:,ff]
     disp=at/(om[ff]**2)
 
 
@@ -166,12 +169,14 @@ for kk in xrange(1,11):
     # fft of the velocity
 
     VY = abs(np.fft.fft(vy, axis=2)[:, :, 0:n / 2])
-    disp_y = VY[:,:,20]/om[20]
+    disp_y = VY[:,::4,ff]/om[ff]
+
+
 
     for ii in range(0,24):
         a_m[kk-1,ii]=np.mean(at[:,ii])
-        disp_m_l[kk-1,ii]=np.mean(disp[:,ii])
-        disp_m_r[kk-1,ii]=np.mean(disp_y[:,ii])
+        disp_m_l[kk-1,ii]=np.mean(disp[0,ii])
+        disp_m_r[kk-1,ii]=np.mean(disp_y[0,ii])
 
 
 
@@ -196,3 +201,10 @@ plt.show()
 
 # 1. Problem: ab wann nehmen wir seismogram -> first peak weg lassen???
 # wir nehmen mal ganze energy -> kann aber spater geandert werden
+
+
+
+#vergleiche exp mit von karman bei hoheren frequenzen ---> es sollte eigentlich eine starken unterschied geben zwischen exp und von karman weil von
+#karman starkerer scatterer hat bei hoheren freqs....
+
+berechne nur displacenemt ratios ....
