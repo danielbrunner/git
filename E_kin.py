@@ -43,11 +43,11 @@ def int_EM(disp_s_l,disp_s_z):
     dist=np.cumsum(d[:,1])*1000     # da wir nur distance haen macht diese fkt. eine plot array [m] (darum mal 1000)
     rho=d[:,4]*1000                 # kg/m^3
 
-    temp=pd.read_csv("./SLDER_9_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    temp=pd.read_csv("./SLDER_10_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UT=prov[:,1]
 
-    temp=pd.read_csv("./SRDER_9_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    temp=pd.read_csv("./SRDER_10_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UR=prov[:,1]
     print(UR[110])
@@ -59,7 +59,7 @@ def int_EM(disp_s_l,disp_s_z):
         inte_l[ii] = integraion(dist, temp, rho)
         temp=UZ*disp_s_z[ii]
         inte_z[ii] = integraion(dist, temp, rho)
-        temp=UR*disp_s_z[ii]*el_6       ###############
+        temp=UR*disp_s_z[ii]*el_10       ###############
         inte_r[ii] = integraion(dist, temp, rho)
 
     return inte_l,inte_z,inte_r
@@ -72,19 +72,19 @@ def int_EM(disp_s_l,disp_s_z):
 
 
 
-
-ff=9                       # frequency ##############
-c=c_l_9                    # phase velo #####################
+ff=10                       # frequency ##############
+c=c_l_10                    # phase velo #####################
+smfp=smfp_3_10
 ff=ff*10
 
 d=20.0                    # d: distance between microarray-receivers
 
 
 
-# # gepmetrical spreading
-# d_r=400
-# r=np.sqrt(np.arange(0,24)*d_r)      # geometrical spreading
-# r[0]=1
+# gepmetrical spreading
+d_r=400
+r=np.arange(1,25)*d_r      # distance vector
+
 
 #output von sofi3D sind glaub m/s --->>> achtung mit phase velocity von oben!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -175,8 +175,8 @@ for kk in xrange(1,11):
 
     for ii in range(0,24):
         a_m[kk-1,ii]=np.mean(at[:,ii])
-        disp_m_l[kk-1,ii]=np.mean(disp[0,ii])
-        disp_m_r[kk-1,ii]=np.mean(disp_y[0,ii])
+        disp_m_l[kk-1,ii]=np.mean(disp[:,ii])
+        disp_m_r[kk-1,ii]=np.mean(disp_y[:,ii])
 
 
 
@@ -196,8 +196,13 @@ E_z=inte_z*om[ff]**2      # calculate the velocity from the displacement
 E_r=inte_r*om[ff]**2      # calculate the velocity from the displacement
 E_ray=E_r+E_z
 
-plt.plot(E_l/E_ray)
+
+fig, ax = plt.subplots(figsize=(20, 12))
+plt.plot(r/float(smfp),E_l/E_ray)
+plt.title('love: '+str(c_l_10/float(ff/10)/200.0)+'    rayleigh: '+str(c_r_10/float(ff/10)/200.0))
 plt.show()
+
+#fig.savefig('model_f_10'+'.png',format='png')      # save figure
 
 # 1. Problem: ab wann nehmen wir seismogram -> first peak weg lassen???
 # wir nehmen mal ganze energy -> kann aber spater geandert werden
@@ -207,4 +212,7 @@ plt.show()
 #vergleiche exp mit von karman bei hoheren frequenzen ---> es sollte eigentlich eine starken unterschied geben zwischen exp und von karman weil von
 #karman starkerer scatterer hat bei hoheren freqs....
 
-berechne nur displacenemt ratios ....
+#berechne nur displacenemt ratios ....
+
+
+vllt zwischenfreqs berechnen
