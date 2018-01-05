@@ -24,7 +24,7 @@ def integraion(x,y,rho):
 
 
 
-def int_EM(disp_s_l,disp_s_z):
+def int_EM(disp_s_l,disp_s_z,EM_freq):
 
     # disp_s: displacement at the surface
 
@@ -38,20 +38,29 @@ def int_EM(disp_s_l,disp_s_z):
 
     #### read depth values and calculate the depth vector
 
-    temp=pd.read_csv("./SLDER_2_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
+    # read depth vector
+    temp=pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SLDER_"+str(EM_freq)+"_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
     d=np.array(temp)
     dist=np.cumsum(d[:,1])*1000     # da wir nur distance haen macht diese fkt. eine plot array [m] (darum mal 1000)
     rho=d[:,4]*1000                 # kg/m^3
 
-    temp=pd.read_csv("./SLDER_10_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    # read love wave EM
+    temp=pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SLDER_"+str(EM_freq)+"_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UT=prov[:,1]
 
-    temp=pd.read_csv("./SRDER_10_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    # read rayleigh wave EM
+    temp=pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SRDER_"+str(EM_freq)+"_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UR=prov[:,1]
-    print(UR[110])
+    #print(UR[110])
     UZ=prov[:,3]
+
+    # read elipicity data
+    temp=pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SREGN_"+str(EM_freq)+"_Hz.TXT", skiprows=range(0, 3), delim_whitespace=True)
+    el=np.array(temp)[0,7]
+    print(el)
+
 
 
     for ii in range(0,len(disp_s_l)):
@@ -59,7 +68,7 @@ def int_EM(disp_s_l,disp_s_z):
         inte_l[ii] = integraion(dist, temp, rho)
         temp=UZ*disp_s_z[ii]
         inte_z[ii] = integraion(dist, temp, rho)
-        temp=UR*disp_s_z[ii]*el_10       ###############
+        temp=UR*disp_s_z[ii]*el       ###############
         inte_r[ii] = integraion(dist, temp, rho)
 
     return inte_l,inte_z,inte_r
@@ -71,11 +80,17 @@ def int_EM(disp_s_l,disp_s_z):
 
 
 
+EM_freq=6.0         # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
 
-ff=10                       # frequency ##############
-c=c_l_10                    # phase velo #####################
+
+# read love wave phase velocity
+temp = pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SLDER_" + str(EM_freq) + "_Hz.TXT",
+                   skiprows=range(0, 160), nrows=1, delim_whitespace=True)
+c_l = np.array(temp[[1]]*1000)
+
+
 smfp=smfp_3_10
-ff=ff*10
+
 
 d=20.0                    # d: distance between microarray-receivers
 
@@ -102,7 +117,7 @@ disp_m_r=np.zeros((10,24))
 
 
 
-#vz=np.empty([14,24*4,1000])
+
 for kk in xrange(1,11):
 
     stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vx.bin'
@@ -141,9 +156,7 @@ for kk in xrange(1,11):
     dt = 1.000000e-02
     freq = np.fft.fftfreq(n, d=dt)[0:n/2]
     om=2*np.pi*freq                 # omega
-    #ROT_X=abs(np.fft.fft(rot_x, axis=2)[:,:,0:n/2])
     ROT_Y=abs(np.fft.fft(rot_y, axis=2)[:,:,0:n/2])
-    #ROT_Z=abs(np.fft.fft(rot_z, axis=2)[:,:,0:n/2])
 
 
 
@@ -153,12 +166,12 @@ for kk in xrange(1,11):
 # calculate acceleration from rotation rate a=2*C*rot where C is phase velocity
 
     # print some important values
-    print(c/float(ff/10)/200.0)
-    print(c/float(ff/10))
+    # print(c/float(ff/10)/200.0)
+    # print(c/float(ff/10))
     ############
 
-    at=2*c*ROT_Y[:,:,ff]
-    disp=at/(om[ff]**2)
+    at=2*c_l*ROT_Y[:,:,int(EM_freq*10)]
+    disp=at/(om[int(EM_freq*10)]**2)
 
 
 
@@ -169,7 +182,7 @@ for kk in xrange(1,11):
     # fft of the velocity
 
     VY = abs(np.fft.fft(vy, axis=2)[:, :, 0:n / 2])
-    disp_y = VY[:,::4,ff]/om[ff]
+    disp_y = VY[:,::4,int(EM_freq*10)]/om[int(EM_freq*10)]
 
 
 
@@ -190,16 +203,16 @@ for ii in range(0,24):
     d_r[ii] = np.mean(disp_m_r[:, ii])
 
 
-inte_l,inte_z,inte_r=int_EM(d_l,d_r)  # parameters
-E_l=inte_l*om[ff]**2      # calculate the velocity from the displacement
-E_z=inte_z*om[ff]**2      # calculate the velocity from the displacement
-E_r=inte_r*om[ff]**2      # calculate the velocity from the displacement
+inte_l,inte_z,inte_r=int_EM(d_l,d_r,EM_freq)  # parameters
+E_l=inte_l*om[int(EM_freq*10)]**2      # calculate the velocity from the displacement
+E_z=inte_z*om[int(EM_freq*10)]**2      # calculate the velocity from the displacement
+E_r=inte_r*om[int(EM_freq*10)]**2      # calculate the velocity from the displacement
 E_ray=E_r+E_z
 
 
 fig, ax = plt.subplots(figsize=(20, 12))
 plt.plot(r/float(smfp),E_l/E_ray)
-plt.title('love: '+str(c_l_10/float(ff/10)/200.0)+'    rayleigh: '+str(c_r_10/float(ff/10)/200.0))
+plt.title('love: '+str(c_l_10/float(int(EM_freq*10)/10)/200.0)+'    rayleigh: '+str(c_r_10/float(int(EM_freq*10)/10)/200.0))
 plt.show()
 
 #fig.savefig('model_f_10'+'.png',format='png')      # save figure
@@ -215,4 +228,4 @@ plt.show()
 #berechne nur displacenemt ratios ....
 
 
-vllt zwischenfreqs berechnen
+#vllt zwischenfreqs berechnen
