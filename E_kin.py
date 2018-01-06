@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from _utils import *
-
+from scipy import stats
 
 
 
@@ -80,7 +80,7 @@ def int_EM(disp_s_l,disp_s_z,EM_freq):
 
 
 
-EM_freq=6.0         # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
+EM_freq=3.0         # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
 
 
 # read love wave phase velocity
@@ -143,9 +143,7 @@ for kk in xrange(1,11):
     for ii in range(0, 14):
         ll = 0
         for jj in range(0, 24):
-            #rot_x[ii,jj,:]=1/2.0*((vz[ii,ll+2,:]-vz[ii,ll,:])/d-(vy[ii,ll+3,:]-vy[ii,ll,:])/d)
             rot_y[ii,jj,:]=1/2.0*((vx[ii,ll+3,:]-vx[ii,ll,:])/d-(vz[ii,ll+1,:]-vz[ii,ll,:])/d)
-            #rot_z[ii,jj,:]=1/2.0*((vy[ii,ll+1,:]-vy[ii,ll,:])/d-(vx[ii,ll+2,:]-vx[ii,ll,:])/d)
             ll=ll+4
 
 
@@ -208,6 +206,13 @@ E_l=inte_l*om[int(EM_freq*10)]**2      # calculate the velocity from the displac
 E_z=inte_z*om[int(EM_freq*10)]**2      # calculate the velocity from the displacement
 E_r=inte_r*om[int(EM_freq*10)]**2      # calculate the velocity from the displacement
 E_ray=E_r+E_z
+
+
+
+
+
+
+
 
 
 fig, ax = plt.subplots(figsize=(20, 12))

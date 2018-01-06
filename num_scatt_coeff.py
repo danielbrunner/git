@@ -47,7 +47,7 @@ def int_EM(disp_s_z):
     rho=d[:,4]*1000                 # kg/m^3
 
 
-    temp=pd.read_csv("./SRDER_10_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    temp=pd.read_csv("./SRDER_3_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UR=prov[:,1]
     print(UR[110])
@@ -71,8 +71,8 @@ def int_EM(disp_s_z):
 
 
 
-ff=10                       # frequency ##############
-c=U_r_10                    # phase velo #####################
+ff=3                       # frequency ##############
+c=U_r_3                    # phase velo #####################
 ff=ff*10
 
 
