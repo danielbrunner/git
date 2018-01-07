@@ -9,6 +9,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from _utils import *
 from scipy import stats
+from scipy.fftpack import fft
+
+
+
+# global variables
+
+U=0                                 # group velocity
 
 
 
@@ -53,13 +60,13 @@ def int_EM(disp_s_l,disp_s_z,EM_freq):
     temp=pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SRDER_"+str(EM_freq)+"_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UR=prov[:,1]
-    #print(UR[110])
     UZ=prov[:,3]
 
     # read elipicity data
     temp=pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SREGN_"+str(EM_freq)+"_Hz.TXT", skiprows=range(0, 3), delim_whitespace=True)
     el=np.array(temp)[0,7]
-    print(el)
+    global U
+    U=np.array(temp)[0,4]*1000                               # read group velocity of Rayleigh waves
 
 
 
@@ -77,10 +84,54 @@ def int_EM(disp_s_l,disp_s_z,EM_freq):
 
 
 
+EM_freq=5.1         # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
 
 
 
-EM_freq=3.0         # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
+### smfp ############
+
+vy_smfp = np.empty([14, 24 * 4, 1000])
+for kk in xrange(1, 11):
+
+    strii='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vy.bin'
+    dumbb=np.fromfile(strii, dtype='<f4')
+    dumbb=np.reshape(dumbb,(14,24*4,1000))
+    vy_smfp=vy_smfp+dumbb
+
+
+vy_smfp=vy_smfp[:,::4,:]/10.0      # durch 10 um mean zu erhalten
+
+n=vy_smfp[0, 0, :].size
+dt=1.000000e-02
+freq=np.fft.fftfreq(n, d=dt)[0:n/2]
+om=2*np.pi*freq  # omega
+
+VY_smfp=abs(np.fft.fft(vy_smfp, axis=2))[:,:,0:n/2]
+disp_y_smfp=VY_smfp[:,:,int(EM_freq*10)]/om[int(EM_freq*10)]
+
+d_r_smfp=np.empty((24))        # mean displacement of radial and over all seismogram
+for ii in range(0,24):
+    d_r_smfp[ii] = np.mean(disp_y_smfp[:, ii])
+
+inte_smfp, inte_z_smfp, inte_r_smfp = int_EM(d_r_smfp,d_r_smfp,EM_freq)  # parameters
+E_z_smfp=inte_z_smfp*om[int(EM_freq*10)]**2*U  # z energy
+E_r_smfp=inte_r_smfp*om[int(EM_freq*10)]**2*U  # r energy
+E_ray_smfp=E_r_smfp + E_z_smfp
+
+
+
+for ii in range(1,25):      # geometrical spreading
+    E_ray_smfp[ii-1]=E_ray_smfp[ii-1]*np.sqrt(ii*400)
+
+# gepmetrical spreading
+dr=400
+r=np.arange(1,25)*dr      # distance vector
+
+slope,intercept,r_value,p_value,std_err = stats.linregress(r, np.log(E_ray_smfp))
+smfp=-1/slope
+
+#############################
+
 
 
 # read love wave phase velocity
@@ -89,7 +140,7 @@ temp = pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering
 c_l = np.array(temp[[1]]*1000)
 
 
-smfp=smfp_3_10
+
 
 
 d=20.0                    # d: distance between microarray-receivers
@@ -200,8 +251,8 @@ for ii in range(0,24):
     d_l[ii] = np.mean(disp_m_l[:, ii])
     d_r[ii] = np.mean(disp_m_r[:, ii])
 
-
 inte_l,inte_z,inte_r=int_EM(d_l,d_r,EM_freq)  # parameters
+
 E_l=inte_l*om[int(EM_freq*10)]**2      # calculate the velocity from the displacement
 E_z=inte_z*om[int(EM_freq*10)]**2      # calculate the velocity from the displacement
 E_r=inte_r*om[int(EM_freq*10)]**2      # calculate the velocity from the displacement
@@ -209,18 +260,12 @@ E_ray=E_r+E_z
 
 
 
-
-
-
-
-
-
 fig, ax = plt.subplots(figsize=(20, 12))
 plt.plot(r/float(smfp),E_l/E_ray)
 plt.title('love: '+str(c_l_10/float(int(EM_freq*10)/10)/200.0)+'    rayleigh: '+str(c_r_10/float(int(EM_freq*10)/10)/200.0))
-plt.show()
+#plt.show()
 
-#fig.savefig('model_f_10'+'.png',format='png')      # save figure
+fig.savefig('model_f_'+str(EM_freq)+'.png',format='png')      # save figure
 
 # 1. Problem: ab wann nehmen wir seismogram -> first peak weg lassen???
 # wir nehmen mal ganze energy -> kann aber spater geandert werden

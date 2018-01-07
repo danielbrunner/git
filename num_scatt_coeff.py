@@ -41,13 +41,13 @@ def int_EM(disp_s_z):
 
     #### read depth values and calculate the depth vector
 
-    temp=pd.read_csv("./SLDER_3_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
+    temp=pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SLDER_3.0_Hz.TXT", skiprows=range(0, 4), nrows=153, delim_whitespace=True)
     d=np.array(temp)
     dist=np.cumsum(d[:,1])*1000     # da wir nur distance haen macht diese fkt. eine plot array [m] (darum mal 1000)
     rho=d[:,4]*1000                 # kg/m^3
 
 
-    temp=pd.read_csv("./SRDER_3_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
+    temp=pd.read_csv("/home/djamel/PHD_projects/scatering_Paper/theo_EM_scattering/SRDER_3.0_Hz.TXT", skiprows=range(0, 164), delim_whitespace=True)
     prov=np.array(temp)
     UR=prov[:,1]
     print(UR[110])
@@ -71,8 +71,8 @@ def int_EM(disp_s_z):
 
 
 
-ff=3                       # frequency ##############
-c=U_r_3                    # phase velo #####################
+ff=4                      # frequency ##############
+c=U_r_4                    # phase velo #####################
 ff=ff*10
 
 
@@ -81,35 +81,22 @@ ff=ff*10
 d_r=400
 r=np.arange(1,25)*d_r      # distance vector
 
-
-#output von sofi3D sind glaub m/s --->>> achtung mit phase velocity von oben!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-# ALLOCATION #############
-
-
-
-# nean acceleration and displacement
-disp_m_r=np.zeros((10,24))
-
-
-
-
-
-
+vy = np.empty([14, 24 * 4, 1000])
 for kk in xrange(1, 11):
-    vy = np.empty([14, 24 * 4, 1000])
-    stri=stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vy.bin'
+
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vy.bin'
     dumb=np.fromfile(stri, dtype='<f4')
     dumb=np.reshape(dumb,(14,24*4,1000))
     vy=vy+dumb
 
+print('sdf '+str(vy[5,5,650]))
 vy=vy[:,::4,:]/10.0      # durch 10 um mean zu erhalten
+
 n=vy[0, 0, :].size
 dt=1.000000e-02
 freq=np.fft.fftfreq(n, d=dt)[0:n/2]
 om=2*np.pi*freq  # omega
-VY=abs(np.fft.fft(vy, axis=2)[:,:,0:n/2])
+VY=abs(np.fft.fft(vy, axis=2))[:,:,0:n/2]
 disp_y=VY[:,:,ff]/om[ff]
 
 
@@ -128,12 +115,12 @@ print(c/float(ff/10))
 ############
 
 
-d_r=np.zeros((24))        # mean displacement of radial and over all seismogram
+d_r_smfp=np.zeros((24))        # mean displacement of radial and over all seismogram
 for ii in range(0,24):
-    d_r[ii] = np.mean(disp_y[:, ii])
+    d_r_smfp[ii] = np.mean(disp_y[:, ii])
 
 #
-inte_z,inte_r=int_EM(d_r)  # parameters
+inte_z,inte_r=int_EM(d_r_smfp)  # parameters
 E_z=inte_z*om[ff]**2*c      # calculate the velocity from the displacement
 E_r=inte_r*om[ff]**2*c      # calculate the velocity from the displacement
 E_ray=E_r+E_z
