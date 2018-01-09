@@ -10,8 +10,12 @@ import pandas as pd
 from _utils import *
 from scipy import stats
 from scipy.fftpack import fft
+# sql store libs
+import sqlite3
+import json
 
-
+# local libs
+import adapt_conv_sql as acsql
 
 # global variables
 
@@ -20,6 +24,31 @@ U=0                                 # group velocity
 
 
 # functions #
+
+# sql libs
+
+sqlite3.register_adapter(np.ndarray, acsql.adapt_array)
+sqlite3.register_converter("MATRIX", acsql.converter_array)
+
+#
+#
+# #
+# # ##### sql part #############
+# #
+connection = sqlite3.connect("scattering.db",detect_types=sqlite3.PARSE_DECLTYPES)
+
+cursor = connection.cursor()
+#E_l_ray: E_l/E_ray
+# l_lam_cl : love wavelength/correlation lengh
+# r_lam_cl: rayleigh wavelength/correlation lengh
+
+cursor.execute("CREATE TABLE if not exists model_3_exp (freq FLOAT, E_l_ray MATRIX, smfp FLOAT, l_lam_cl, r_lam_cl FLOAT"
+               ", cp4_lam_cl FLOAT, cr4_lam_cl FLOAT, cp3_lam_cl FLOAT, cr3_lam_cl FLOAT, cp2_lam_cl FLOAT, cr2_lam_cl FLOAT, cp1_lam_cl FLOAT, cr1_lam_cl FLOAT)")
+#####################
+
+
+
+
 
 
 def integraion(x,y,rho):
@@ -67,7 +96,8 @@ def int_EM(disp_s_l,disp_s_z,EM_freq):
     el=np.array(temp)[0,7]
     global U
     U=np.array(temp)[0,4]*1000                               # read group velocity of Rayleigh waves
-
+    global c_r
+    c_r=np.array(temp)[0,3]*1000                               # read group velocity of Rayleigh waves
 
 
     for ii in range(0,len(disp_s_l)):
@@ -84,7 +114,7 @@ def int_EM(disp_s_l,disp_s_z,EM_freq):
 
 
 
-EM_freq=5.1         # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
+EM_freq=8.1        # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
 
 
 
@@ -219,9 +249,8 @@ for kk in xrange(1,11):
     # print(c/float(ff/10))
     ############
 
-    at=2*c_l*ROT_Y[:,:,int(EM_freq*10)]
+    at=2*c_l[0][0]*ROT_Y[:,:,int(EM_freq*10)]
     disp=at/(om[int(EM_freq*10)]**2)
-
 
 
 
@@ -259,23 +288,45 @@ E_r=inte_r*om[int(EM_freq*10)]**2      # calculate the velocity from the displac
 E_ray=E_r+E_z
 
 
-
-fig, ax = plt.subplots(figsize=(20, 12))
-plt.plot(r/float(smfp),E_l/E_ray)
-plt.title('love: '+str(c_l_10/float(int(EM_freq*10)/10)/200.0)+'    rayleigh: '+str(c_r_10/float(int(EM_freq*10)/10)/200.0))
-#plt.show()
-
-fig.savefig('model_f_'+str(EM_freq)+'.png',format='png')      # save figure
-
-# 1. Problem: ab wann nehmen wir seismogram -> first peak weg lassen???
-# wir nehmen mal ganze energy -> kann aber spater geandert werden
+print(str(c_l[0][0]/EM_freq/200.0))
 
 
 
-#vergleiche exp mit von karman bei hoheren frequenzen ---> es sollte eigentlich eine starken unterschied geben zwischen exp und von karman weil von
-#karman starkerer scatterer hat bei hoheren freqs....
 
-#berechne nur displacenemt ratios ....
+# fig, ax = plt.subplots(figsize=(20, 12))
+# plt.plot(r/float(smfp),E_l/E_ray)
+# plt.title('love: '+str(c_l[0][0]/float(int(EM_freq*10)/10)/200.0)+'    rayleigh: '+str(c_r/float(int(EM_freq*10)/10)/200.0)+
+#           ' s-velocity: '+str(2130/float(int(EM_freq*10)/10)/200.0)+
+#           ' p-velocity: '+str(3700/float(int(EM_freq*10)/10)/200.0))
+# #plt.show()
+#
+# #fig.savefig('model_f_'+str(EM_freq)+'.png',format='png')      # save figure
+#
+#
+# # save data file
+# print(smfp)
 
 
-#vllt zwischenfreqs berechnen
+
+# body wave velocities
+c_p_4=4500/EM_freq/200.0                          # lam at layer i over correlation length
+c_s_4=2600/EM_freq/200.0
+
+c_p_3=4300/EM_freq/200.0
+c_s_3=2500/EM_freq/200.0
+
+c_p_2=4000/EM_freq/200.0
+c_s_2=2310/EM_freq/200.0
+
+c_p_1=3700/EM_freq/200.0
+c_s_1=2130/EM_freq/200.0
+
+
+
+cursor.execute("INSERT INTO model_3_exp VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", (EM_freq,E_l/E_ray,smfp,c_l[0][0]/EM_freq/200.0,c_r/EM_freq/200.0,
+                                                                              c_p_4,c_s_4,c_p_3,c_s_3,c_p_2,c_s_2,c_p_1,c_s_1))
+connection.commit()
+connection.close()
+
+
+#model 2 cp etc nicht speichern und von model 3 nehmen
