@@ -17,6 +17,7 @@ import json
 # local libs
 import adapt_conv_sql as acsql
 
+
 # global variables
 
 U=0                                 # group velocity
@@ -42,7 +43,7 @@ cursor = connection.cursor()
 # l_lam_cl : love wavelength/correlation lengh
 # r_lam_cl: rayleigh wavelength/correlation lengh
 
-cursor.execute("CREATE TABLE if not exists model_3_exp (freq FLOAT, E_l_ray MATRIX, smfp FLOAT, l_lam_cl, r_lam_cl FLOAT"
+cursor.execute("CREATE TABLE if not exists model_2_NL (freq FLOAT, E_l_ray MATRIX, smfp FLOAT, l_lam_cl, r_lam_cl FLOAT"
                ", cp4_lam_cl FLOAT, cr4_lam_cl FLOAT, cp3_lam_cl FLOAT, cr3_lam_cl FLOAT, cp2_lam_cl FLOAT, cr2_lam_cl FLOAT, cp1_lam_cl FLOAT, cr1_lam_cl FLOAT)")
 #####################
 
@@ -105,7 +106,7 @@ def int_EM(disp_s_l,disp_s_z,EM_freq):
         inte_l[ii] = integraion(dist, temp, rho)
         temp=UZ*disp_s_z[ii]
         inte_z[ii] = integraion(dist, temp, rho)
-        temp=UR*disp_s_z[ii]*el       ###############
+        temp=UR*disp_s_z[ii]       ###############
         inte_r[ii] = integraion(dist, temp, rho)
 
     return inte_l,inte_z,inte_r
@@ -114,7 +115,7 @@ def int_EM(disp_s_l,disp_s_z,EM_freq):
 
 
 
-EM_freq=8.1        # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
+EM_freq=9.9                    # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
 
 
 
@@ -123,7 +124,7 @@ EM_freq=8.1        # ACHTUNG!!!!!!!! 2.0 nicht 2 !!!!!!!!!!!!!!!!!!!!
 vy_smfp = np.empty([14, 24 * 4, 1000])
 for kk in xrange(1, 11):
 
-    strii='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vy.bin'
+    strii='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_NL'+'/Model_2_'+str(kk)+'_NL'+'_vy.bin'
     dumbb=np.fromfile(strii, dtype='<f4')
     dumbb=np.reshape(dumbb,(14,24*4,1000))
     vy_smfp=vy_smfp+dumbb
@@ -201,15 +202,15 @@ disp_m_r=np.zeros((10,24))
 
 for kk in xrange(1,11):
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vx.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_NL'+'/Model_2_'+str(kk)+'_NL'+'_vx.bin'
     vx=np.fromfile(stri, dtype='<f4')
     vx=np.reshape(vx, (14,24*4, 1000))
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vy.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_NL'+'/Model_2_'+str(kk)+'_NL'+'_vy.bin'
     vy=np.fromfile(stri, dtype='<f4')
     vy=np.reshape(vy, (14,24*4, 1000))
 
-    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_3/seismogram_3_'+str(kk)+'_exp'+'/Model_3_'+str(kk)+'_exp'+'_vz.bin'
+    stri='/home/djamel/PHD_projects/scatering_Paper/seismogram/model_2/seismogram_2_'+str(kk)+'_NL''/Model_2_'+str(kk)+'_NL'+'_vz.bin'
     vz=np.fromfile(stri, dtype='<f4')
     vz=np.reshape(vz, (14,24*4, 1000))
 
@@ -323,7 +324,7 @@ c_s_1=2130/EM_freq/200.0
 
 
 
-cursor.execute("INSERT INTO model_3_exp VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", (EM_freq,E_l/E_ray,smfp,c_l[0][0]/EM_freq/200.0,c_r/EM_freq/200.0,
+cursor.execute("INSERT INTO model_2_NL VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", (EM_freq,E_l/E_ray,smfp,c_l[0][0]/EM_freq/200.0,c_r/EM_freq/200.0,
                                                                               c_p_4,c_s_4,c_p_3,c_s_3,c_p_2,c_s_2,c_p_1,c_s_1))
 connection.commit()
 connection.close()
