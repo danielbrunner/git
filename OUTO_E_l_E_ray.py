@@ -87,13 +87,13 @@ for ii in range(0,90):
 
 fig = plt.figure()
 ax=fig.add_subplot(211)
-line1=ax.plot(lam_r[20::],ma_E_lr_2[20::],'or', label = '$\sigma=15\%$, exponential CF')
+line1=ax.plot(lam_r[16::],ma_E_lr_2[16::],'or', label = '$\sigma=15\%$, exponential CF')
 plt.hold(True)
-line2=plt.plot(lam_r[20::],ma_E_lr_3[20::],'og', label = '$\sigma=20\%$, exponential CF')
+line2=plt.plot(lam_r[16::],ma_E_lr_3[16::],'og', label = '$\sigma=20\%$, exponential CF')
 plt.hold(True)
-line3=plt.plot(lam_r[20::],ma_E_lr_vK[20::],'ob', label = '$\sigma=15\%$, von Karman CF')
+line3=plt.plot(lam_r[16::],ma_E_lr_vK[16::],'ob', label = '$\sigma=15\%$, von Karman CF')
 plt.hold(True)
-line4=plt.plot(lam_r[20::],ma_E_lr_NL[20::],'ok', label = '$\sigma=15\%$, exponential CF, no layer')
+line4=plt.plot(lam_r[16::],ma_E_lr_NL[16::],'ok', label = '$\sigma=15\%$, exponential CF, no layer')
 
 
 
@@ -104,13 +104,13 @@ plt.ylabel('$E_{L}/E_{R}$', fontsize=22)
 
 
 ax=fig.add_subplot(212)
-line1=ax.plot(lam_r[20::],smfp_2[20::],'or', label = '$\sigma=15\%$, exponential CF')
+line1=ax.plot(lam_r[16::],smfp_2[16::],'or', label = '$\sigma=15\%$, exponential CF')
 plt.hold(True)
-line2=plt.plot(lam_r[20::],smfp_3[20::],'og', label = '$\sigma=20\%$, exponential CF')
+line2=plt.plot(lam_r[16::],smfp_3[16::],'og', label = '$\sigma=20\%$, exponential CF')
 plt.hold(True)
-line3=plt.plot(lam_r[20::],smfp_vK[20::],'ob', label = '$\sigma=15\%$, von Karman CF')
+line3=plt.plot(lam_r[16::],smfp_vK[16::],'ob', label = '$\sigma=15\%$, von Karman CF')
 plt.hold(True)
-line4=plt.plot(lam_r[20::],smfp_NL[20::],'ok', label = '$\sigma=15\%$, exponential CF, no layer')
+line4=plt.plot(lam_r[16::],smfp_NL[16::],'ok', label = '$\sigma=15\%$, exponential CF, no layer')
 
 
 # legend
@@ -176,3 +176,4 @@ plt.show()
 # love geht viel weiter runter also rayleigh waves ->
 
 # the higher the frequency the lower the smfp
+
